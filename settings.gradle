@@ -1,0 +1,2 @@
+include ':app', ':interaction', ':data', ':network', ':storage', ':common'
+rootProject.name='HodSampleApp'

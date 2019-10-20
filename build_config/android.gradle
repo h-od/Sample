@@ -1,0 +1,58 @@
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion compile_sdk_version
+    buildToolsVersion build_tools_version
+
+    defaultConfig {
+        minSdkVersion min_sdk_version
+        targetSdkVersion target_sdk_version
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments clearPackageData: 'true'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            testCoverageEnabled false
+
+            // PROGUARD
+            def proguardRuleFiles = collectCommonProguardRules()
+            proguardRuleFiles.add(0, getDefaultProguardFile('proguard-android.txt'))
+            proguardRuleFiles.add(1, 'proguard-rules.pro')
+            logger.warn("Common proguard files: $proguardRuleFiles")
+
+            proguardFiles proguardRuleFiles.toArray()
+        }
+
+        debug {
+            minifyEnabled false
+            testCoverageEnabled false
+
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    testOptions {
+        animationsDisabled = true
+    }
+
+    aaptOptions {
+        noCompress 'zip'
+    }
+
+    dexOptions {
+        javaMaxHeapSize "2g"
+    }
+}
+
+androidExtensions {
+    experimental = true
+}

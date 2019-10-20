@@ -1,0 +1,112 @@
+apply plugin: 'com.android.application'
+apply from: "${project.rootDir}/build_config/android.gradle"
+
+//version
+int major = 0
+int minor = 1
+int patch = 0
+
+android {
+    flavorDimensions "default"
+
+    defaultConfig {
+        applicationId "com.hughod.sample"
+
+        versionName "${major}.${minor}.${patch}"
+        versionCode generateVersionCode(major, minor, patch, getBuildNumber())
+
+        buildConfigField "String", "GIT_HASH_SHORT", quoteString(execGitHashShort())
+        buildConfigField "String", "GIT_BRANCH", quoteString(execGitBranch())
+        buildConfigField "String", "GIT_COMMIT_DATE", quoteString(execGitCommitDate())
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file("${project.rootDir}/build_config/signing_keys/debug.keystore")
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storePassword 'android'
+        }
+
+        release {
+            storeFile file("${project.rootDir}/build_config/signing_keys/temporary_release.keystore")
+            storePassword "password"
+            keyAlias "temporary_release_key"
+            keyPassword "password"
+        }
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+
+            signingConfig signingConfigs.debug
+        }
+
+        release {
+            minifyEnabled true
+            debuggable false
+
+            signingConfig signingConfigs.release
+        }
+    }
+
+    productFlavors {
+        prod {
+            dimension "default"
+
+            buildConfigField "String", "BASE_URL", quoteString("TODO")
+            buildConfigField "String", "IMAGE_URL", quoteString("TODO")
+            buildConfigField "String", "API_KEY", quoteString("TODO")
+        }
+
+        dev {
+            dimension "default"
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+
+            buildConfigField "String", "BASE_URL", quoteString("api.themoviedb.org/3/")
+            buildConfigField "String", "IMAGE_URL", quoteString("image.tmdb.org/t/p/")
+            buildConfigField "String", "API_KEY", quoteString("e08d99b7d5abe43e74086e1dd2b335d4")
+        }
+
+        qa {
+            dimension "default"
+            applicationIdSuffix ".qa"
+            versionNameSuffix "-qa"
+
+            buildConfigField "String", "BASE_URL", quoteString("TODO")
+            buildConfigField "String", "IMAGE_URL", quoteString("TODO")
+            buildConfigField "String", "API_KEY", quoteString("TODO")
+        }
+    }
+}
+
+dependencies {
+    implementation project(":common")
+    implementation project(":common")
+    testImplementation project(":common")
+    implementation project(":interaction")
+
+    implementation "androidx.appcompat:appcompat:$androidx_appcompat_version"
+    implementation "androidx.constraintlayout:constraintlayout:$androidx_constraint_layout_version"
+
+    implementation "androidx.lifecycle:lifecycle-extensions:$androidx_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-runtime:$androidx_lifecycle_version"
+
+    implementation "androidx.navigation:navigation-fragment-ktx:$androidx_nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$androidx_nav_version"
+
+    implementation "com.google.android.material:material:$google_material_version"
+    implementation "com.airbnb.android:lottie:$lottie_version"
+
+    implementation "com.github.bumptech.glide:glide:$glide_version"
+
+    implementation "org.koin:koin-android:$koin_version"
+    implementation "org.koin:koin-androidx-scope:$koin_version"
+    implementation "org.koin:koin-androidx-ext:$koin_version"
+
+    androidTestImplementation "org.koin:koin-test:$koin_version"
+    androidTestImplementation "androidx.arch.core:core-testing:$androidx_test_lifecycle"
+    androidTestImplementation "org.mockito:mockito-android:$mockito_version"
+}
