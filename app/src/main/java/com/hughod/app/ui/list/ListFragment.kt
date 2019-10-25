@@ -3,17 +3,15 @@ package com.hughod.app.ui.list
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.hughod.app.BuildConfig
 import com.hughod.app.R
+import com.hughod.app.ui.ext.findAndSetTextOrHide
+import com.hughod.app.ui.ext.showError
+import com.hughod.app.ui.ext.showImage
 import com.hughod.app.ui.util.ViewHolder
-import com.hughod.app.ui.util.showError
-import com.hughod.common.models.app.MovieModel
 import org.koin.androidx.scope.currentScope
 
 class ListFragment : Fragment(R.layout.fragment_list) {
@@ -36,19 +34,13 @@ class ListFragment : Fragment(R.layout.fragment_list) {
         viewModel.error.observe(this, Observer { activity?.showError(it) })
     }
 
-    private class MovieViewHolder(parent: ViewGroup) :
-        ViewHolder<MovieModel>(parent, R.layout.item_movie) {
+    private class MovieViewHolder(parent: ViewGroup) : ViewHolder<MovieModel>(parent, R.layout.item_movie) {
         override fun bind(data: MovieModel, itemSelected: ((MovieModel) -> Unit)?) {
-            val imageSize = "w500"
-
-            Glide.with(itemView.context)
-                .load("https://${BuildConfig.IMAGE_URL}$imageSize${data.posterPath}")
-                .into(itemView.findViewById(R.id.poster_iv))
-
-            itemView.findViewById<TextView>(R.id.title_tv).text = data.name
-            itemView.findViewById<TextView>(R.id.overview_tv).text = data.overview
-            itemView.findViewById<TextView>(R.id.release_date_tv).text = data.releaseDate
-            itemView.findViewById<TextView>(R.id.rating_tv).text = data.rating.toString()
+            itemView.showImage(R.id.poster_iv, data.posterPath)
+            itemView.findAndSetTextOrHide(R.id.title_tv, data.title)
+            itemView.findAndSetTextOrHide(R.id.overview_tv, data.body)
+            itemView.findAndSetTextOrHide(R.id.release_date_tv, data.releaseDate)
+            itemView.findAndSetTextOrHide(R.id.rating_tv, data.rating.toString())
 
             itemView.setOnClickListener { itemSelected?.invoke(data) }
         }

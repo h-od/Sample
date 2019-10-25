@@ -2,7 +2,5 @@ apply plugin: 'com.android.library'
 apply from: "${project.rootDir}/build_config/android.gradle"
 
 dependencies {
-    implementation project(":common")
-    api project(":network")
-    api project(":storage")
+    implementation project(":interaction")
 }
