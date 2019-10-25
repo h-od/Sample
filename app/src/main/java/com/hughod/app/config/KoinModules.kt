@@ -7,13 +7,22 @@ import com.hughod.app.ui.detail.DetailFragment
 import com.hughod.app.ui.detail.DetailViewModelFactory
 import com.hughod.app.ui.list.ListFragment
 import com.hughod.app.ui.list.ListViewModelFactory
-import com.hughod.data.MovieDetailRepository
-import com.hughod.data.MovieListRepository
-import com.hughod.interaction.detail.GetMovieInteractor
-import com.hughod.interaction.list.GetAllMoviesInteractor
+import com.hughod.data.MovieDetailProvider
+import com.hughod.data.MovieListProvider
+import com.hughod.interaction.interactor.GetAllMoviesInteractor
+import com.hughod.interaction.interactor.GetMovieInteractor
 import com.hughod.network.Network
-import com.hughod.storage.Cache
+import com.hughod.network.data_source.MovieDetailNetworkService
+import com.hughod.network.data_source.MovieListNetworkService
+import com.hughod.network.mapper.DetailDtoToEntityMapper
+import com.hughod.network.mapper.ListDtoToEntityMapper
 import com.hughod.storage.GsonSerializer
+import com.hughod.storage.data_source.MovieDetailCache
+import com.hughod.storage.data_source.MovieListCache
+import com.hughod.storage.mapper.DetailDaoToEntityMapper
+import com.hughod.storage.mapper.DetailEntityToDaoMapper
+import com.hughod.storage.mapper.ListDaoToEntityMapper
+import com.hughod.storage.mapper.ListEntityToDaoMapper
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
@@ -22,7 +31,7 @@ import org.koin.dsl.module
 val listModel = module {
     scope(named<ListFragment>()) {
         scoped { ListViewModelFactory(interactor = get()) }
-        scoped { GetAllMoviesInteractor(repository = get<MovieListRepository>()) }
+        scoped { GetAllMoviesInteractor(repository = get<MovieListProvider>()) }
     }
 }
 
@@ -31,43 +40,59 @@ val detailModel = module {
         scoped { (id: Int) -> DetailViewModelFactory(interactor = get { parametersOf(id) }) }
 
         scoped { (id: Int) ->
-            GetMovieInteractor(repository = get<MovieDetailRepository>{ parametersOf(id) })
+            GetMovieInteractor(repository = get<MovieDetailProvider> {
+                parametersOf(
+                    id
+                )
+            })
         }
     }
 }
 
 val dataModel = module {
-    factory { (id: Int) -> MovieDetailRepository(
-        movieId = id,
-        network = get(),
-        cache = get()
-    ) }
-    single { MovieListRepository(get(), get()) }
+    factory { (id: Int) ->
+        MovieDetailProvider(
+            movieId = id,
+            network = get<MovieDetailNetworkService>(),
+            cache = get<MovieDetailCache>()
+        )
+    }
+    single {
+        MovieListProvider(
+            network = get<MovieListNetworkService>(),
+            cache = get<MovieListCache>()
+        )
+    }
 }
 
 val networkModel = module {
     single { Network(url = BuildConfig.BASE_URL, apiKey = BuildConfig.API_KEY) }
-    single { get<Network>().movieDetailService }
-    single { get<Network>().movieListService }
+
+    single { MovieDetailNetworkService(network = get(), mapper = DetailDtoToEntityMapper()) }
+    single { MovieListNetworkService(network = get(), mapper = ListDtoToEntityMapper()) }
 }
 
 val storageModel = module {
     single {
-        Cache.Detail(
+        MovieDetailCache(
             preferences = androidContext().getSharedPreferences(
                 "DETAIL_CACHE",
                 Context.MODE_PRIVATE
             ),
-            serializer = get<GsonSerializer>()
+            serializer = get<GsonSerializer>(),
+            toDomainMapper = DetailDaoToEntityMapper(),
+            toStorageMapper = DetailEntityToDaoMapper()
         )
     }
     single {
-        Cache.List(
+        MovieListCache(
             preferences = androidContext().getSharedPreferences(
                 "LIST_CACHE",
                 Context.MODE_PRIVATE
             ),
-            serializer = get<GsonSerializer>()
+            serializer = get<GsonSerializer>(),
+            toDomainMapper = ListDaoToEntityMapper(),
+            toStorageMapper = ListEntityToDaoMapper()
         )
     }
 

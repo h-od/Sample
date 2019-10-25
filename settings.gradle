@@ -1,2 +1,2 @@
-include ':app', ':interaction', ':data', ':network', ':storage', ':common'
+include ':app', ':interaction', ':data', ':network', ':storage'
 rootProject.name='HodSampleApp'
